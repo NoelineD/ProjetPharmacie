@@ -1,10 +1,15 @@
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,12 +22,9 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.table.DefaultTableModel;
 
 public class Menu_principal {
 
@@ -62,6 +64,7 @@ public class Menu_principal {
 	public Menu_principal() {
 		initialize();
 		Connect();
+		Table();
 	}
 	
 	public void Connect() {
@@ -74,7 +77,7 @@ public class Menu_principal {
 	        String username = "root";
 	        String password = ""; // Remplacez par votre mdp si nécessaire
 	        
-	        Connection con = DriverManager.getConnection(url, username, password);
+	        con = DriverManager.getConnection(url, username, password);
 	        
 	        System.out.println("Connexion établie");
 	    } catch (ClassNotFoundException e) {
@@ -86,6 +89,39 @@ public class Menu_principal {
 	    }
 	}
 
+//	recupérer les infos depuis la base pour les afficher dans une entete
+	
+	public void Table() {
+		try {
+			Connect();
+			String [] entet = {"Code","Nom","Prix","Qte","Total","Payer","Reste"};
+			String [] ligne = new String[7];
+			
+//			car c'est un tableau donc il faut ajouter un model par default
+			DefaultTableModel model = new DefaultTableModel(null, entet);
+			
+			String sql = "select * from table_pharma";
+			Statement st= con.createStatement();
+			rs = st.executeQuery(sql);
+			
+			while (rs.next()) {
+				ligne[0] = rs.getString("code");
+				ligne[1] = rs.getString("nom");
+				ligne[2] = rs.getString("prix");
+				ligne[3] = rs.getString("qte");
+				ligne[4] = rs.getString("total");
+				ligne[5] = rs.getString("payer");
+				ligne[6] = rs.getString("reste");
+				model.addRow(ligne);
+			}
+			
+			txtTable.setModel(model);
+			con.close();
+			
+		} catch (Exception e) {
+			 e.printStackTrace();
+		}
+	}
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -215,7 +251,8 @@ public class Menu_principal {
 					pst.setString(2, textPrix.getText());
 					pst.setString(3, textQuantite.getValue().toString());
 					pst.setString(4, textTotal.getText());
-					pst.setString(5, textReste.getText());
+					pst.setString(5, textPayer.getText());
+					pst.setString(6, textReste.getText());
 					pst.executeUpdate();
 					
 					con.close();
@@ -233,8 +270,9 @@ public class Menu_principal {
 		panel_1.add(btnNewButton);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 410, 645, 242);
+		scrollPane.setBounds(10, 425, 645, 244);
 		frame.getContentPane().add(scrollPane);
+		txtTable.setBackground(new Color(202, 238, 255));
 		scrollPane.setViewportView(txtTable);
 	}
 }
